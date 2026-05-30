@@ -1,0 +1,26 @@
+@use 'sass:math';
+
+// Плавный (fluid) размер шрифта: линейно интерполирует от $min (на ширине
+// $min-viewport) до $max (на $max-viewport) через clamp(). Значения — в px.
+//
+// За пределами диапазона clamp фиксирует размер на $min / $max, поэтому на
+// очень узких и очень широких экранах шрифт не выходит за рамки.
+@mixin fluid-text($max: 128, $min: 9) {
+  $max-viewport: 1920;
+  $min-viewport: 320;
+
+  $max-size: math.div($max, 16);
+  $min-size: math.div($min, 16);
+  $max-width: math.div($max-viewport, 16);
+  $min-width: math.div($min-viewport, 16);
+
+  $slope: math.div($max-size - $min-size, $max-width - $min-width);
+  // y-перехват считается от минимальной ШИРИНЫ вьюпорта (не от размера шрифта).
+  $intercept: -$min-width * $slope + $min-size;
+
+  font-size: clamp(
+    #{$min-size * 1rem},
+    #{$intercept * 1rem} + #{$slope * 100vw},
+    #{$max-size * 1rem}
+  );
+}
