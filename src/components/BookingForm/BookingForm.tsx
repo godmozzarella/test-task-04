@@ -11,6 +11,8 @@ import {
 
 import { getMaxDateISO, getTodayISO } from '@/utils/date';
 
+import { formatPhone } from '@/utils/phone';
+
 import {
   validateDate,
   validateGuests,
@@ -47,13 +49,17 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
   const controlClass = (hasError: boolean) =>
     hasError ? `${s.control} ${s.controlError}` : s.control;
 
+  const phoneField = register('phone', {
+    validate: (value) => validatePhone(value) ?? true,
+  });
+
   return (
     <form className={s.form} onSubmit={onSubmit} noValidate>
       <Field label="Имя гостя" htmlFor="name" error={errors.name?.message}>
         <input
           id="name"
           type="text"
-          placeholder="Иван"
+          placeholder="Ваше имя"
           aria-invalid={!!errors.name}
           className={controlClass(!!errors.name)}
           {...register('name', { validate: (value) => validateName(value) ?? true })}
@@ -64,10 +70,15 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
         <input
           id="phone"
           type="tel"
-          placeholder="+7 (999) 123-45-67"
+          inputMode="tel"
+          placeholder="+7 (999) 676-67-67"
           aria-invalid={!!errors.phone}
           className={controlClass(!!errors.phone)}
-          {...register('phone', { validate: (value) => validatePhone(value) ?? true })}
+          {...phoneField}
+          onChange={(event) => {
+            event.target.value = formatPhone(event.target.value);
+            phoneField.onChange(event);
+          }}
         />
       </Field>
 
