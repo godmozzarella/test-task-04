@@ -2,29 +2,21 @@
 
 import { useForm } from 'react-hook-form';
 import type { BookingFormData } from '@/types/booking';
-import {
-  MAX_GUESTS,
-  MIN_GUESTS,
-  SUBMIT_DELAY_MS,
-  TIME_SLOTS,
-} from '@/utils/constants';
-
+import { MAX_GUESTS, MIN_GUESTS, TIME_SLOTS } from '@/utils/constants';
 import { getMaxDateISO, getTodayISO } from '@/utils/date';
-
 import { formatPhone } from '@/utils/phone';
-
 import {
   validateDate,
   validateGuests,
   validateName,
   validatePhone,
 } from '@/utils/validation';
-
 import { Field } from './Field';
 import s from './BookingForm.module.scss';
 
 interface BookingFormProps {
-  onSuccess: (data: BookingFormData) => void;
+  onSubmit: (data: BookingFormData) => void;
+  isSubmitting: boolean;
 }
 
 const GUEST_OPTIONS = Array.from(
@@ -32,29 +24,26 @@ const GUEST_OPTIONS = Array.from(
   (_, index) => MIN_GUESTS + index,
 );
 
-export function BookingForm({ onSuccess }: BookingFormProps) {
+export function BookingForm({ onSubmit, isSubmitting }: BookingFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<BookingFormData>({ mode: 'onBlur' });
 
-  const onSubmit = handleSubmit(async (data) => {
-    
-    // Имитация запроса к серверу; isSubmitting держит лоадер на кнопке. Задержка в SUBMIT_DELAY_MS
-    await new Promise((resolve) => setTimeout(resolve, SUBMIT_DELAY_MS));
-    onSuccess(data);
-  });
+  // handleSubmit прогоняет валидацию и вызывает onSubmit только на валидных данных.
+  const handleFormSubmit = handleSubmit((data) => onSubmit(data));
 
   const controlClass = (hasError: boolean) =>
     hasError ? `${s.control} ${s.controlError}` : s.control;
 
+  // Телефон регистрируем отдельно, чтобы наложить маску поверх onChange.
   const phoneField = register('phone', {
     validate: (value) => validatePhone(value) ?? true,
   });
 
   return (
-    <form className={s.form} onSubmit={onSubmit} noValidate>
+    <form className={s.form} onSubmit={handleFormSubmit} noValidate>
       <Field label="Имя гостя" htmlFor="name" error={errors.name?.message}>
         <input
           id="name"
